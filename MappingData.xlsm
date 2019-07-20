@@ -1,0 +1,276 @@
+    Sub MappingData(TestCaseFile As Variant, TC_Path As Variant)
+
+    Dim ws As Worksheet
+
+     '(1) Open the dictionary & the testcase file  workbooks
+      Workbooks.Open "D:\DictionaryFile.xlsm"
+
+      Set wb = Workbooks.Open(Filename:=TC_Path & TestCaseFile)
+
+      Dim TestCase_SheetName As String
+      
+      
+     '(2) Declaration of the worksheet Name
+      TestCase_SheetName = wb.ActiveSheet.Name
+
+
+
+     '(3) Copy Data from Imported Testcases File to Dictionary File
+
+      Workbooks(TestCaseFile).Worksheets(wb.ActiveSheet.Name).Range("A1:I50").Copy _
+      Workbooks("DictionaryFile.xlsm").Worksheets("DictionarySheet").Range("A1")
+  
+   '(4) Close the test case file after copying the data into the dictionary file
+      Workbooks(TestCaseFile).Close
+ 
+   
+     '(5) Assigning Arabic Labels with English Labels
+  
+        Dim i As Long, j As Long
+        Dim label As String
+        Dim lastRowA As Long, lastRowK As Long
+        
+        Set ws = Workbooks("DictionaryFile.xlsm").Worksheets("DictionarySheet")
+        
+        lastRowA = Range("A" & Rows.Count).End(xlUp).Row
+        lastRowK = Range("K" & Rows.Count).End(xlUp).Row
+    
+    
+        For i = 1 To 50
+                label = ""
+            For j = 1 To 50
+                If ws.Cells(i, 1) = ws.Cells(j, 11) Then
+    
+                   ws.Cells(i, 1) = ws.Cells(j, 12)
+                   
+                   label = "Found"
+                   
+                 End If
+            Next j
+            
+            
+            If (label <> "Found") Then
+          
+            ws.Cells(i, 1).Interior.Color = RGB(255, 0, 0)
+     
+            End If
+             
+        Next i
+    
+    '(6) Delete unwanted Columns
+      Workbooks("DictionaryFile.xlsm").Worksheets("DictionarySheet").Range("K:K,L:L").EntireColumn.Delete
+    
+    '(7) Renaming of the  name of the output sheet
+      Workbooks("DictionaryFile.xlsm").Worksheets("DictionarySheet").Name = TestCase_SheetName
+    
+    
+    '(8) Remove Extension from the mapping file name
+     Dim file_name As String
+     Dim ArabicVersion As String
+     ArabicVersion = "_ArabicVersion_"
+     
+     file_name = CreateObject("Scripting.FileSystemObject").GetBaseName(TestCaseFile)
+     
+     
+     
+     '(9) Save the workbook as OutputFile in to Destination Folder
+     
+  Workbooks("DictionaryFile.xlsm").SaveAs ("D:\Mapping_Test_Cases\ " & file_name & ArabicVersion & Format(Now(), "DD-MMM-YYYY hh mm AMPM"))
+  
+ Dim Path_Of_Mapping_TC_File As String
+ Dim Name_Of_Mapping_TC_File As String
+ Dim Name_Of_Mapping_TC_Sheet As String
+ 
+ Path_Of_Mapping_TC_File = Application.ActiveWorkbook.FullName
+ Name_Of_Mapping_TC_File = Application.ActiveWorkbook.Name
+ Name_Of_Mapping_TC_Sheet = Application.ActiveSheet.Name
+ 
+
+ 
+ 
+ '(10) Close the test case after saving
+ ActiveWorkbook.Close (True)
+
+    '(11) Automatically answer OK to Alert Message
+     Application.DisplayAlerts = False
+     
+     
+ 
+    '(12) Open The Error workbook & the Mapping Test Case workbook
+      Workbooks.Open "D:\Error_Mapping_Data\EFile.xlsm"
+      Workbooks.Open Path_Of_Mapping_TC_File
+      
+     ''/////////////////////////
+     
+     '(13) Copy Error Value from Output File into Error File
+    
+      Dim wsMapping As Worksheet, wsError As Worksheet
+      Dim rwIndex As Integer
+      
+        
+         Set wsMapping = Workbooks(Name_Of_Mapping_TC_File).Worksheets(Name_Of_Mapping_TC_Sheet)
+         Set wsError = Workbooks("EFile.xlsm").Worksheets("Sheet1")
+        
+         Dim ii  As Integer
+         ii = 1
+         
+         For rwIndex = 1 To 50
+              
+         If wsMapping.Cells(rwIndex, 1).Interior.Color = RGB(255, 0, 0) Then
+                     
+            wsError.Cells(ii, 1) = wsMapping.Cells(rwIndex, 1)
+            ii = ii + 1
+         End If
+                        
+
+        Next rwIndex
+        
+             
+        
+        
+         '(14) Renaming of the  name of the error sheet
+          Workbooks("EFile.xlsm").Worksheets("Sheet1").Name = TestCase_SheetName + " Error"
+         
+         
+         '(15) Remove Extension from the error file name
+     Dim error_file_name As String
+     Dim Error As String
+     Error = "_Error_"
+     
+     error_file_name = CreateObject("Scripting.FileSystemObject").GetBaseName(TestCaseFile)
+        
+        
+        
+        
+         '(16) Save the workbook as ErrorFile in to Error Destination Folder
+     
+  Workbooks("EFile.xlsm").SaveAs ("D:\Error_Mapping_Data\ " & error_file_name & Error & Format(Now(), "DD-MMM-YYYY hh mm AMPM"))
+        
+        
+        
+        
+        
+        
+ '(17) Close the mapping file and the error file after saving
+ ActiveWorkbook.Close (True)
+
+ActiveWorkbook.Close (True)
+
+
+    '(18) Automatically answer OK to Alert Message
+     Application.DisplayAlerts = False
+     
+     
+
+    End Sub
+    
+
+ Sub LoopAllExcelFilesInFolder()
+ 
+ 'Automatically answer OK to Alert Message
+ Application.DisplayAlerts = False
+ 'To loop through all Excel files in a user specified folder and perform a set task on them
+Dim wb As Workbook
+Dim ws As Worksheet
+Dim myPath As String
+Dim myFile As String
+Dim myExtension As String
+Dim FldrPicker As FileDialog
+
+'Optimize Macro Speed
+  Application.ScreenUpdating = False
+  Application.EnableEvents = False
+  Application.Calculation = xlCalculationManual
+
+'Retrieve Target Folder Path From User
+  Set FldrPicker = Application.FileDialog(msoFileDialogFolderPicker)
+
+    With FldrPicker
+      .Title = "Please select directory of the test cases"
+      .AllowMultiSelect = False
+        If .Show <> -1 Then GoTo NextCode
+        myPath = .SelectedItems(1) & "\"
+    End With
+
+'In Case of Cancel
+NextCode:
+  myPath = myPath
+  If myPath = "" Then GoTo ResetSettings
+
+'Target File Extension (must include wildcard "*")
+  myExtension = "*.xlsx*"
+
+'Target Path with Ending Extention
+  myFile = Dir(myPath & myExtension)
+
+'Loop through each Excel file in folder
+  Do While myFile <> ""
+
+
+ 'Call MappingData SubRoutine
+  Call MappingData(myFile, myPath)
+  
+
+    'Ensure Workbook has closed before moving on to next line of code
+      DoEvents
+
+    'Get next file name
+      myFile = Dir
+  Loop
+
+'Message Box when tasks are completed
+  MsgBox "Task Complete!"
+
+ResetSettings:
+  'Reset Macro Optimization Settings
+    Application.EnableEvents = True
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+
+End Sub
+
+
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
