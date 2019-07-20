@@ -1,0 +1,63 @@
+ Sub LoopAllExcelFilesInFolder()
+ 
+ 'Automatically answer OK to Alert Message
+ Application.DisplayAlerts = False
+ 'To loop through all Excel files in a user specified folder and perform a set task on them
+Dim wb As Workbook
+Dim ws As Worksheet
+Dim myPath As String
+Dim myFile As String
+Dim myExtension As String
+Dim FldrPicker As FileDialog
+
+'Optimize Macro Speed
+  Application.ScreenUpdating = False
+  Application.EnableEvents = False
+  Application.Calculation = xlCalculationManual
+
+'Retrieve Target Folder Path From User
+  Set FldrPicker = Application.FileDialog(msoFileDialogFolderPicker)
+
+    With FldrPicker
+      .Title = "Please select directory of the test cases"
+      .AllowMultiSelect = False
+        If .Show <> -1 Then GoTo NextCode
+        myPath = .SelectedItems(1) & "\"
+    End With
+
+'In Case of Cancel
+NextCode:
+  myPath = myPath
+  If myPath = "" Then GoTo ResetSettings
+
+'Target File Extension (must include wildcard "*")
+  myExtension = "*.xlsx*"
+
+'Target Path with Ending Extention
+  myFile = Dir(myPath & myExtension)
+
+'Loop through each Excel file in folder
+  Do While myFile <> ""
+
+
+ 'Call MappingData SubRoutine
+  Call MappingData(myFile, myPath)
+  
+
+    'Ensure Workbook has closed before moving on to next line of code
+      DoEvents
+
+    'Get next file name
+      myFile = Dir
+  Loop
+
+'Message Box when tasks are completed
+  MsgBox "Task Complete!"
+
+ResetSettings:
+  'Reset Macro Optimization Settings
+    Application.EnableEvents = True
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+
+End Sub
