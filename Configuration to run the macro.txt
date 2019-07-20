@@ -1,0 +1,16 @@
+Configuration to run the macro
+
+(1) Create the output folder to get the English_Arabic mapping files in D:\ Partition and rename the folder "Mapping_Test_Cases"
+
+(2) Put the Dictionary file in D:\ Partition and it must be Excel file with Macro Enabled (.xlsm) and rename it "DictionaryFile"
+
+(3) Create the error folder to get the error files in D:\ Partition and rename the folder "Error_Mapping_Data"
+
+(4) In the the folder "Error_Mapping_Data", Create Excel file with Macro Enabled (.xlsm) and rename it "EFile"
+
+(5) Prepare your target test cases files in only one folder in your PC in any directory you want.
+
+(6) Please note that you must name the file names and the folder names as mentioned above.
+
+(7) Finally, Run the Macro from the file "MappingData.xlsm"
+
